@@ -14,7 +14,7 @@
             display: flex; flex-direction: column; height: 100vh; background-color: #f6f8fc; 
             font-family: 'Roboto', sans-serif; color: #1f1f1f; overflow: hidden;
         }
-        header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background-color: #f6f8fc; height: 64px; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background-color: #f6f8fc; height: 64px; flex-shrink: 0; }
         .header-left { display: flex; align-items: center; gap: 16px; }
         .icon-btn { background: none; border: none; padding: 12px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #444746; }
         .icon-btn:hover { background-color: #e1e3e1; }
@@ -24,7 +24,7 @@
         .search-bar input { width: 100%; background: none; border: none; outline: none; font-size: 16px; color: #1f1f1f; }
 
         .app-body { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 256px; padding: 0 12px; background-color: #f6f8fc; display: flex; flex-direction: column; overflow-y: auto; }
+        .sidebar { width: 256px; padding: 0 12px; background-color: #f6f8fc; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
 
         .compose-btn { 
             display: flex; align-items: center; gap: 12px; background: #c2e7ff; color: #001d35; 
@@ -45,12 +45,20 @@
         .menu-item:hover { background-color: #eaebef; color: #1f1f1f; }
         .menu-item.active { background-color: #d3e3fd; color: #041e49; font-weight: 700; }
 
-        .main-content { flex: 1; display: flex; flex-direction: column; background: white; margin-right: 16px; margin-bottom: 16px; border-radius: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        /* ── Main content area wraps both list and detail ── */
+        .main-content { 
+            flex: 1; display: flex; flex-direction: column; background: white; 
+            margin-right: 16px; margin-bottom: 16px; border-radius: 16px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; position: relative;
+        }
         
+        /* ── List view ── */
+        .list-view { display: flex; flex-direction: column; height: 100%; }
+
         .folder-header { 
             padding: 12px 24px; font-size: 18px; font-family: 'Google Sans', sans-serif; font-weight: 500; 
             border-bottom: 1px solid #f1f3f4; background: white; text-transform: capitalize; 
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
         }
         .folder-header-left { display: flex; align-items: center; gap: 8px; }
         
@@ -75,13 +83,6 @@
         .email-item.dragging { transition: none; }
         .email-item:not(.dragging) { transition: transform 0.2s ease-out; }
         .email-item:hover { box-shadow: inset 1px 0 0 #dadce0, inset -1px 0 0 #dadce0, 0 1px 3px 0 rgba(60,64,67,.2); background: #fdfdfd; }
-        
-        .email-item.expanded { height: auto; min-height: 140px; position: relative; padding: 14px 16px; display: block; background: #f8f9fa; border-left: 4px solid #0b57d0; box-shadow: inset 0 2px 4px rgba(0,0,0,0.03); }
-        .email-item.expanded .sender { width: auto; font-weight: 700; margin-bottom: 6px; }
-        .email-item.expanded .subject-wrapper { display: block; white-space: normal; overflow: visible; margin-top: 6px; }
-        .email-item.expanded .subject { font-weight: 700; display: block; max-width: 100%; margin-bottom: 12px; color: #1a1a1a; }
-        .email-item.expanded .snippet { display: block; white-space: pre-wrap; color: #202124; line-height: 1.6; font-size: 14px; padding: 4px 0; }
-        .email-item.expanded .time-stamp { position: absolute; top: 14px; right: 16px; }
 
         .email-check { margin-right: 12px; width: 16px; height: 16px; cursor: pointer; accent-color: #0b57d0; z-index: 5; position: relative; }
         .star-icon { font-size: 20px; color: #c4c7c5; margin-right: 12px; cursor: pointer; z-index: 5; position: relative; }
@@ -96,6 +97,170 @@
         .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #5f6368; gap: 12px; }
         .empty-state .material-icons-outlined { font-size: 64px; color: #dadce0; }
 
+        /* ══════════════════════════════════════════
+           EMAIL DETAIL VIEW — slides in from right
+        ══════════════════════════════════════════ */
+        .detail-view {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(100%);
+            transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10;
+            border-radius: 16px;
+        }
+        .detail-view.open {
+            transform: translateX(0);
+        }
+
+        /* Top toolbar in detail view */
+        .detail-toolbar {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f3f4;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .detail-toolbar .back-btn {
+            display: flex; align-items: center; gap: 4px;
+            background: none; border: none; cursor: pointer;
+            color: #444746; font-size: 14px; font-family: 'Google Sans', sans-serif;
+            padding: 8px 12px; border-radius: 20px; font-weight: 500;
+            transition: background 0.15s;
+        }
+        .detail-toolbar .back-btn:hover { background: #f1f3f4; }
+        .detail-toolbar .back-btn .material-icons-outlined { font-size: 20px; }
+
+        .detail-toolbar-actions {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .detail-toolbar-actions .icon-btn {
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* Subject / meta header */
+        .detail-header {
+            padding: 16px 24px 0 24px;
+            border-bottom: 1px solid #f1f3f4;
+            flex-shrink: 0;
+        }
+        .detail-subject {
+            font-family: 'Google Sans', sans-serif;
+            font-size: 22px;
+            font-weight: 400;
+            color: #1f1f1f;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+
+        /* Message card */
+        .detail-message-card {
+            margin: 0 24px;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .detail-message-meta {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            cursor: pointer;
+        }
+        .detail-avatar {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Google Sans', sans-serif;
+            font-size: 16px; font-weight: 500;
+            color: white;
+            flex-shrink: 0;
+        }
+        .detail-meta-text { flex: 1; }
+        .detail-sender-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f1f1f;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .detail-sender-email {
+            font-size: 12px;
+            color: #5f6368;
+            margin-top: 2px;
+        }
+        .detail-time {
+            font-size: 12px;
+            color: #5f6368;
+            white-space: nowrap;
+            margin-top: 3px;
+        }
+        .detail-star-btn {
+            background: none; border: none; cursor: pointer;
+            color: #c4c7c5; font-size: 22px;
+            padding: 4px; display: flex; align-items: center;
+        }
+        .detail-star-btn.starred { color: #f4b400; }
+
+        /* Body scroll area */
+        .detail-body-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 24px 32px 24px;
+        }
+        .detail-body-text {
+            padding: 20px;
+            font-size: 14px;
+            line-height: 1.7;
+            color: #3c4043;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* Loading skeleton */
+        .body-loading {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .skeleton-line {
+            height: 14px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 4px;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Reply button at bottom */
+        .detail-reply-bar {
+            padding: 12px 24px 16px;
+            flex-shrink: 0;
+            border-top: 1px solid #f1f3f4;
+        }
+        .reply-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: none; border: 1px solid #dadce0; color: #0b57d0;
+            padding: 8px 20px; border-radius: 20px; font-size: 14px;
+            font-weight: 500; cursor: pointer; font-family: 'Google Sans', sans-serif;
+            transition: background 0.15s;
+        }
+        .reply-btn:hover { background: #f0f4ff; }
+        .reply-btn .material-icons-outlined { font-size: 18px; }
+
+        /* Compose modal */
         .modal { display: none; position: fixed; bottom: 0; right: 80px; width: 548px; background: white; border-radius: 12px 12px 0 0; box-shadow: 0px 12px 32px rgba(0,0,0,0.2); border: 1px solid #dadce0; flex-direction: column; z-index: 100; }
         .modal.open { display: flex; }
         .modal-header { background: #404040; color: white; padding: 10px 16px; font-size: 14px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
@@ -107,6 +272,7 @@
         .modal-body textarea { width: 100%; border: none; flex: 1; padding: 16px 0; outline: none; font-size: 14px; resize: none; min-height: 240px; }
         .modal-footer { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid #f1f3f4; gap: 8px; }
         .send-action-btn { background: #0b57d0; color: white; border: none; padding: 10px 24px; border-radius: 100px; font-weight: 500; cursor: pointer; font-size: 14px; }
+
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: white; padding: 12px 20px; border-radius: 4px; font-size: 14px; z-index: 200; transition: transform 0.3s ease; display: flex; align-items: center; }
         .toast.show { transform: translateX(-50%) translateY(0); }
     </style>
@@ -151,18 +317,85 @@
     </div>
 
     <div class="main-content">
-        <div class="folder-header">
-            <div class="folder-header-left" id="folderHeader">
-                <span class="material-icons-outlined" style="font-size:20px;color:#0b57d0;">inbox</span> Inbox
+
+        <!-- LIST VIEW -->
+        <div class="list-view" id="listView">
+            <div class="folder-header">
+                <div class="folder-header-left" id="folderHeader">
+                    <span class="material-icons-outlined" style="font-size:20px;color:#0b57d0;">inbox</span> Inbox
+                </div>
+                <button class="bulk-delete-btn" id="bulkDeleteAction" onclick="deleteSelectedEmails()">
+                    <span class="material-icons-outlined" style="font-size:18px;">delete</span> Delete Selected
+                </button>
             </div>
-            <button class="bulk-delete-btn" id="bulkDeleteAction" onclick="deleteSelectedEmails()">
-                <span class="material-icons-outlined" style="font-size:18px;">delete</span> Delete Selected
-            </button>
+            <div class="email-list" id="emailList"></div>
         </div>
-        <div class="email-list" id="emailList"></div>
+
+        <!-- DETAIL VIEW (slides in over the list) -->
+        <div class="detail-view" id="detailView">
+
+            <div class="detail-toolbar">
+                <button class="back-btn" onclick="closeDetailView()">
+                    <span class="material-icons-outlined">arrow_back</span>
+                    <span id="detailBackLabel">Inbox</span>
+                </button>
+                <div class="detail-toolbar-actions">
+                    <button class="icon-btn" title="Delete" onclick="deleteCurrentEmail()">
+                        <span class="material-icons-outlined">delete</span>
+                    </button>
+                    <button class="icon-btn" title="Mark unread">
+                        <span class="material-icons-outlined">mark_email_unread</span>
+                    </button>
+                    <button class="icon-btn" title="More options">
+                        <span class="material-icons-outlined">more_vert</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="detail-header">
+                <div class="detail-subject" id="detailSubject">Loading…</div>
+            </div>
+
+            <div class="detail-body-scroll">
+                <div class="detail-message-card" id="detailCard">
+                    <div class="detail-message-meta" id="detailMeta">
+                        <div class="detail-avatar" id="detailAvatar">?</div>
+                        <div class="detail-meta-text">
+                            <div class="detail-sender-name" id="detailSenderName">—</div>
+                            <div class="detail-sender-email" id="detailSenderEmail"></div>
+                            <div class="detail-time" id="detailTime"></div>
+                        </div>
+                        <button class="detail-star-btn" id="detailStarBtn" onclick="toggleDetailStar()">
+                            <span class="material-icons-outlined" id="detailStarIcon">star_border</span>
+                        </button>
+                    </div>
+                    <div id="detailBody" class="detail-body-text">
+                        <div class="body-loading">
+                            <div class="skeleton-line" style="width:80%"></div>
+                            <div class="skeleton-line" style="width:95%"></div>
+                            <div class="skeleton-line" style="width:65%"></div>
+                            <div class="skeleton-line" style="width:88%"></div>
+                            <div class="skeleton-line" style="width:50%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="detail-reply-bar" id="detailReplyBar">
+                <button class="reply-btn" onclick="openReply()">
+                    <span class="material-icons-outlined">reply</span> Reply
+                </button>
+                &nbsp;
+                <button class="reply-btn" onclick="openForward()">
+                    <span class="material-icons-outlined">forward</span> Forward
+                </button>
+            </div>
+
+        </div>
     </div>
 </div>
 
+<!-- COMPOSE MODAL -->
 <div class="modal" id="composeModal">
     <div class="modal-header">
         <span>Compose Message</span>
@@ -191,6 +424,21 @@ let originalTo = "";
 let originalSubject = "";
 let originalBody = "";
 
+// Currently open email in detail view
+let detailCurrentEmailId = null;
+let detailCurrentStarred = false;
+
+// Avatar colour palette — consistent per sender initial
+const AVATAR_COLORS = [
+    '#1a73e8','#d93025','#188038','#e37400','#7627bb',
+    '#0097a7','#c2185b','#388e3c','#f57c00','#5c6bc0'
+];
+function avatarColor(name) {
+    let n = 0;
+    for (let i = 0; i < name.length; i++) n += name.charCodeAt(i);
+    return AVATAR_COLORS[n % AVATAR_COLORS.length];
+}
+
 async function fetchFolderData() {
     document.getElementById('bulkDeleteAction').classList.remove('visible');
     try {
@@ -206,7 +454,7 @@ async function fetchFolderData() {
 function renderList(list) {
     const el = document.getElementById('emailList');
     if (!list || !list.length) {
-        el.innerHTML = `<div class="empty-state"><p>No messages here</p></div>`;
+        el.innerHTML = `<div class="empty-state"><span class="material-icons-outlined">inbox</span><p>No messages here</p></div>`;
         return;
     }
 
@@ -236,6 +484,169 @@ function renderList(list) {
         </div>
     `}).join('');
 }
+
+/* ══════════════════════════════════════════
+   DETAIL VIEW — open / close
+══════════════════════════════════════════ */
+
+function openDetailView(emailObj) {
+    detailCurrentEmailId = emailObj.id;
+    detailCurrentStarred = emailObj.starred;
+
+    // Back label
+    document.getElementById('detailBackLabel').textContent =
+        currentFolder.charAt(0).toUpperCase() + currentFolder.slice(1);
+
+    // Subject
+    document.getElementById('detailSubject').textContent =
+        emailObj.subject || '(No Subject)';
+
+    // Avatar + sender
+    const senderRaw = emailObj.sender || 'Unknown';
+    const initial = senderRaw.replace(/^(Draft to:|To:)\s*/i, '').trim()[0]?.toUpperCase() || '?';
+    const av = document.getElementById('detailAvatar');
+    av.textContent = initial;
+    av.style.background = avatarColor(senderRaw);
+
+    document.getElementById('detailSenderName').textContent = senderRaw;
+    document.getElementById('detailSenderEmail').textContent = ''; // filled after body fetch if possible
+    document.getElementById('detailTime').textContent = emailObj.time || '';
+
+    // Star state
+    const starBtn = document.getElementById('detailStarBtn');
+    const starIcon = document.getElementById('detailStarIcon');
+    if (emailObj.starred) {
+        starBtn.classList.add('starred');
+        starIcon.textContent = 'star';
+        starIcon.className = 'material-icons';
+    } else {
+        starBtn.classList.remove('starred');
+        starIcon.textContent = 'star_border';
+        starIcon.className = 'material-icons-outlined';
+    }
+
+    // Skeleton while loading
+    document.getElementById('detailBody').innerHTML = `
+        <div class="body-loading">
+            <div class="skeleton-line" style="width:80%"></div>
+            <div class="skeleton-line" style="width:95%"></div>
+            <div class="skeleton-line" style="width:65%"></div>
+            <div class="skeleton-line" style="width:88%"></div>
+            <div class="skeleton-line" style="width:50%"></div>
+        </div>`;
+
+    // Hide reply bar for drafts (they open compose instead)
+    document.getElementById('detailReplyBar').style.display =
+        currentFolder === 'drafts' ? 'none' : '';
+
+    // Slide in
+    document.getElementById('detailView').classList.add('open');
+
+    // Fetch body
+    fetch(`/api/body?id=${emailObj.id}&folder=${currentFolder}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('detailBody').textContent =
+                    data.body || '(Empty message)';
+            } else {
+                document.getElementById('detailBody').textContent = 'Could not load message.';
+            }
+        })
+        .catch(() => {
+            document.getElementById('detailBody').textContent = 'Network error loading message.';
+        });
+}
+
+function closeDetailView() {
+    document.getElementById('detailView').classList.remove('open');
+    detailCurrentEmailId = null;
+}
+
+/* ══════════════════════════════════════════
+   Star toggle inside detail view
+══════════════════════════════════════════ */
+
+async function toggleDetailStar() {
+    if (detailCurrentEmailId === null) return;
+    const nextStarred = !detailCurrentStarred;
+    detailCurrentStarred = nextStarred;
+
+    const starBtn = document.getElementById('detailStarBtn');
+    const starIcon = document.getElementById('detailStarIcon');
+    if (nextStarred) {
+        starBtn.classList.add('starred');
+        starIcon.textContent = 'star';
+        starIcon.className = 'material-icons';
+    } else {
+        starBtn.classList.remove('starred');
+        starIcon.textContent = 'star_border';
+        starIcon.className = 'material-icons-outlined';
+    }
+
+    try {
+        await fetch('/api/star', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: detailCurrentEmailId, folder: currentFolder, starred: nextStarred })
+        });
+        showToast(nextStarred ? 'Conversation starred.' : 'Conversation unstarred.');
+        if (currentFolder === 'starred' && !nextStarred) closeDetailView();
+    } catch (err) { console.error(err); }
+}
+
+/* ══════════════════════════════════════════
+   Delete from detail view
+══════════════════════════════════════════ */
+
+async function deleteCurrentEmail() {
+    if (detailCurrentEmailId === null) return;
+    closeDetailView();
+    const wrapper = document.getElementById(`wrapper-${detailCurrentEmailId}`);
+    if (wrapper) {
+        wrapper.style.opacity = '0';
+        wrapper.style.height = '0px';
+        wrapper.style.minHeight = '0px';
+    }
+    try {
+        await fetch('/api/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: [detailCurrentEmailId], folder: currentFolder })
+        });
+    } catch (err) { console.error(err); }
+    setTimeout(fetchFolderData, 600);
+}
+
+/* ══════════════════════════════════════════
+   Reply / Forward helpers
+══════════════════════════════════════════ */
+
+function openReply() {
+    const emailObj = cachedEmails.find(e => e.id === detailCurrentEmailId);
+    if (!emailObj) return;
+    openCompose();
+    // Prefill To with sender, Subject with Re: …
+    let replyTo = emailObj.sender.replace(/^(To:|Draft to:)\s*/i, '').trim();
+    document.getElementById('emailTo').value = replyTo;
+    document.getElementById('emailSubject').value =
+        emailObj.subject.startsWith('Re:') ? emailObj.subject : `Re: ${emailObj.subject}`;
+}
+
+function openForward() {
+    const emailObj = cachedEmails.find(e => e.id === detailCurrentEmailId);
+    if (!emailObj) return;
+    openCompose();
+    document.getElementById('emailSubject').value =
+        emailObj.subject.startsWith('Fwd:') ? emailObj.subject : `Fwd: ${emailObj.subject}`;
+    const body = document.getElementById('detailBody').textContent;
+    document.getElementById('emailBody').value =
+        `\n\n---------- Forwarded message ----------\n${body}`;
+}
+
+/* ══════════════════════════════════════════
+   Star list — existing logic
+══════════════════════════════════════════ */
 
 async function executeStarToggle(event, mailId, currentStarredState) {
     event.stopPropagation(); 
@@ -267,16 +678,15 @@ async function executeStarToggle(event, mailId, currentStarredState) {
     } catch (err) { console.error(err); }
 }
 
+/* ══════════════════════════════════════════
+   Checkbox / bulk delete
+══════════════════════════════════════════ */
+
 function evaluateCheckboxVisibility(e) {
     e.stopPropagation(); 
     const checkBoxes = document.querySelectorAll('.email-check:checked');
     const trashBtn = document.getElementById('bulkDeleteAction');
-    
-    if (checkBoxes.length > 0) {
-        trashBtn.classList.add('visible');
-    } else {
-        trashBtn.classList.remove('visible');
-    }
+    trashBtn.classList.toggle('visible', checkBoxes.length > 0);
 }
 
 async function deleteSelectedEmails() {
@@ -306,6 +716,10 @@ async function deleteSelectedEmails() {
 
     setTimeout(fetchFolderData, 600);
 }
+
+/* ══════════════════════════════════════════
+   Swipe-to-delete (touch / mouse)
+══════════════════════════════════════════ */
 
 let startX = 0;
 let currentX = 0;
@@ -385,66 +799,47 @@ async function executeRowDeletion(mailId) {
     setTimeout(fetchFolderData, 600);
 }
 
+/* ══════════════════════════════════════════
+   Click handler — draft → compose, others → detail
+══════════════════════════════════════════ */
+
 function handleEmailClick(mailId, isDraft) {
-    if (isDraft) {
-        const emailObj = cachedEmails.find(e => e.id === mailId);
-        if (emailObj) {
-            openCompose();
-            currentDraftId = mailId;
-            isDataLoading = true; 
-
-            let cleanedTo = emailObj.sender.replace("Draft to: ", "").trim();
-            if (cleanedTo === "(No Recipient)") cleanedTo = "";
-            
-            document.getElementById('emailTo').value = cleanedTo;
-            document.getElementById('emailSubject').value = emailObj.subject === "(No Subject)" ? "" : emailObj.subject;
-            
-            originalTo = cleanedTo;
-            originalSubject = emailObj.subject === "(No Subject)" ? "" : emailObj.subject;
-            originalBody = ""; 
-
-            fetch(`/api/body?id=${mailId}&folder=drafts`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === "success") {
-                        document.getElementById('emailBody').value = data.body;
-                        originalBody = data.body; 
-                    }
-                    isDataLoading = false; 
-                }).catch(() => { isDataLoading = false; });
-        }
-    } else {
-        toggleEmailRow(mailId);
-    }
-}
-
-async function toggleEmailRow(mailId) {
-    const targetRow = document.getElementById(`msg-${mailId}`);
-    const snippetElement = document.getElementById(`snip-${mailId}`);
     const emailObj = cachedEmails.find(e => e.id === mailId);
-    const fallbackText = emailObj ? emailObj.body : "Click to view message snippet...";
+    if (!emailObj) return;
 
-    if (!targetRow || !snippetElement) return;
+    if (isDraft) {
+        openCompose();
+        currentDraftId = mailId;
+        isDataLoading = true; 
 
-    if (targetRow.classList.contains('expanded')) {
-        targetRow.classList.remove('expanded');
-        snippetElement.innerHTML = `— ${fallbackText}`;
-        return;
-    }
+        let cleanedTo = emailObj.sender.replace("Draft to: ", "").trim();
+        if (cleanedTo === "(No Recipient)") cleanedTo = "";
+        
+        document.getElementById('emailTo').value = cleanedTo;
+        document.getElementById('emailSubject').value = emailObj.subject === "(No Subject)" ? "" : emailObj.subject;
+        
+        originalTo = cleanedTo;
+        originalSubject = emailObj.subject === "(No Subject)" ? "" : emailObj.subject;
+        originalBody = ""; 
 
-    targetRow.classList.add('expanded');
-    snippetElement.innerHTML = `<div style="color: #5f6368; font-style: italic; margin-top: 8px;">Loading message body...</div>`;
-
-    try {
-        const response = await fetch(`/api/body?id=${mailId}&folder=${currentFolder}`);
-        const data = await response.json();
-        if (data.status === "success" && targetRow.classList.contains('expanded')) {
-            snippetElement.innerHTML = `<div style="margin-top:12px; padding:12px; background:#ffffff; border:1px solid #dadce0; border-radius:8px; white-space:pre-wrap; color:#3c4043; font-family: Roboto, sans-serif;">${data.body || '(Empty Message)'}</div>`;
-        }
-    } catch (err) {
-        snippetElement.innerHTML = `<div style="margin-top:12px; color:#ea4335;">Failed to load message body.</div>`;
+        fetch(`/api/body?id=${mailId}&folder=drafts`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === "success") {
+                    document.getElementById('emailBody').value = data.body;
+                    originalBody = data.body; 
+                }
+                isDataLoading = false; 
+            }).catch(() => { isDataLoading = false; });
+    } else {
+        // Open full detail view
+        openDetailView(emailObj);
     }
 }
+
+/* ══════════════════════════════════════════
+   Draft auto-save
+══════════════════════════════════════════ */
 
 async function checkAndAutoSaveDraft() {
     if (wasSentTriggered || isDataLoading) return;
@@ -542,24 +937,30 @@ async function sendMail() {
     } catch (err) { wasSentTriggered = false; }
 }
 
+/* ══════════════════════════════════════════
+   Folder switching
+══════════════════════════════════════════ */
+
 async function switchFolder(name) {
     if (document.getElementById('composeModal').classList.contains('open')) {
         await checkAndAutoSaveDraft();
     }
+    closeDetailView();
     currentFolder = name;
     document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
     document.getElementById('menu-' + name).classList.add('active');
     
     const headerTitle = document.getElementById('folderHeader');
-    let iconName = 'inbox';
-    if(name === 'starred') iconName = 'star_border';
-    if(name === 'sent') iconName = 'send';
-    if(name === 'drafts') iconName = 'description';
-    headerTitle.innerHTML = `<span class="material-icons-outlined" style="font-size:20px;color:#0b57d0;">${iconName}</span> ${name}`;
+    const iconMap = { inbox: 'inbox', starred: 'star_border', sent: 'send', drafts: 'description' };
+    headerTitle.innerHTML = `<span class="material-icons-outlined" style="font-size:20px;color:#0b57d0;">${iconMap[name] || 'inbox'}</span> ${name}`;
 
-    document.getElementById('emailList').innerHTML = '<div style="padding: 24px; text-align: center; color: #5f6368;">Loading...</div>';
+    document.getElementById('emailList').innerHTML = '<div style="padding: 24px; text-align: center; color: #5f6368;">Loading…</div>';
     await fetchFolderData();
 }
+
+/* ══════════════════════════════════════════
+   Toast & search
+══════════════════════════════════════════ */
 
 function showToast(msg) {
     document.getElementById('toastMsg').textContent = msg;
@@ -577,6 +978,15 @@ function searchEmails(query) {
     );
     renderList(results);
 }
+
+// Keyboard shortcut: Escape to close detail view
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+        if (document.getElementById('detailView').classList.contains('open')) {
+            closeDetailView();
+        }
+    }
+});
 
 fetchFolderData();
 </script>
